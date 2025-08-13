@@ -1,0 +1,17 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Define a simple left‑to‑right gradient. The colours match the brand
+         palette used in the header of the application (blue to purple). -->
+    <linearGradient id="jlGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#2563EB;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9333EA;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Background rectangle filled with the gradient -->
+  <rect width="256" height="256" rx="32" ry="32" fill="url(#jlGradient)" />
+  <!-- Centered brand initials. The font size and weight are tuned to remain
+       legible even at favicon sizes. -->
+  <text x="50%" y="55%" text-anchor="middle" dominant-baseline="middle"
+        font-family="Arial, Helvetica, sans-serif" font-weight="bold"
+        font-size="140" fill="white">JL</text>
+</svg>

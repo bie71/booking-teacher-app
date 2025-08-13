@@ -1,0 +1,10 @@
+.vscode
+**/.vscode
+**/.env
+**/node_modules
+**/pids.txt
+
+docker-compose.yml
+
+**/bin
+db/*

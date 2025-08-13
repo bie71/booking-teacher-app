@@ -1,0 +1,207 @@
+# version: '3.8'
+
+# This docker compose configuration orchestrates all backend services
+# (user, teacher, booking, payment) and the frontend application along with
+# a MySQL database. Each service is built from its own Dockerfile and
+# connected on a shared bridge network so they can resolve each other by
+# container name. The database runs with a persisted volume and exposes
+# the default port for local development. The payment service port is
+# exposed to allow payment gateway callbacks.
+services:
+  # Database service. Provides a MySQL instance used by all microservices.
+  mysql:
+    image: mysql:8.0
+    container_name: micro-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: japanlearn
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      TZ: Asia/Jakarta
+    ports:
+      - "3306:3306"
+    volumes:
+      # Persist database data across restarts
+      - db-data:/var/lib/mysql
+    command: >-
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend
+
+  # User service. Handles authentication, profiles, favourites and activity logs.
+  user:
+    build:
+      context: .
+      dockerfile: micro/user/Dockerfile
+    container_name: user-service
+    environment:
+      MYSQL_DSN: root:pass@tcp(mysql-project:3306)/japanlearn_users?parseTime=true&loc=Asia%2FJakarta
+      APP_PORT: "8081"
+      GIN_MODE: "release"
+      DB_MAX_CONECTION: 50
+      DB_MAX_IDLE_CONNS: 10
+      DB_CONN_MAX_LIFETIME: "30"
+      JWT_SECRET_KEY: "jwt-key"
+      JWT_TOKEN_DURATION: 24
+      SERVICE_BOOKING_HOST: http://booking:8083
+      SERVICE_TEACHER_HOST: http://teacher:8082
+      # SMTP configuration for email service (can be disabled in local dev)
+      SMTP_HOST: "smtp.example.com"
+      SMTP_PORT: 465
+      SMTP_USERNAME: "example@example.com"
+      SMTP_PASSWORD: "password"
+      SMTP_FROM_EMAIL: "noreply@example.com"
+      SMTP_TEMPLATE_PATH: "/templates/reset_password.html"
+      SMTP_TEMPLATE_LOGO_URL: "https://logo.com/logo.png"
+      SMTP_TIMEOUT_DURATION: 30
+      SMTP_INSECURE_SKIP_VERIFY: "true"
+      SMTP_USE_TLS: "true"
+      # Object storage client configuration (unused if not uploading images)
+      CLIENT_ENDPOINT: "https://example.com"
+      CLIENT_ACCESS_KEY: "access-key"
+      CLIENT_SECRET_KEY: "secret-key"
+      CLIENT_REGION: "ap-southeast-1"
+      CLIENT_BUCKET_NAME: "images"
+      # Base URL of the frontend used to construct password reset links. This
+      # must be accessible from the user clicking the email; typically it
+      # matches the externally exposed URL for the frontend service.
+      FRONTEND_URL: "http://localhost:3030"
+      IS_NFT: "false"
+      ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:8080,http://localhost:3030"
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mysql
+    networks:
+      - bookings-net
+
+  # Teacher service. Provides teacher management, schedules and dashboard data.
+  teacher:
+    build:
+      context: .
+      dockerfile: micro/teacher/Dockerfile
+    container_name: teacher-service
+    environment:
+      MYSQL_DSN: root:pass@tcp(mysql-project:3306)/japanlearn_teachers?parseTime=true&loc=Asia%2FJakarta
+      APP_PORT: "8082"
+      GIN_MODE: "release"
+      DB_MAX_CONECTION: 50
+      DB_MAX_IDLE_CONNS: 10
+      DB_CONN_MAX_LIFETIME: "30"
+      JWT_SECRET_KEY: "jwt-key"
+      JWT_TOKEN_DURATION: 24
+      SERVICE_BOOKING_HOST: http://booking:8083
+      # Supabase or object storage client configuration
+      CLIENT_ENDPOINT: "https://example.com"
+      CLIENT_ACCESS_KEY: "access-key"
+      CLIENT_SECRET_KEY: "secret-key"
+      CLIENT_REGION: "ap-southeast-1"
+      CLIENT_BUCKET_NAME: "images"
+      IS_NFT: "false"
+      ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:8080,http://localhost:3030"
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mysql
+    networks:
+      - bookings-net
+
+  # Booking service. Manages booking creation, schedules and payment relations.
+  booking:
+    build:
+      context: .
+      dockerfile: micro/booking/Dockerfile
+    container_name: booking-service
+    environment:
+      MYSQL_DSN: root:pass@tcp(mysql-project:3306)/japanlearn_bookings?parseTime=true&loc=Asia%2FJakarta
+      APP_PORT: "8083"
+      GIN_MODE: "release"
+      DB_MAX_CONECTION: 50
+      DB_MAX_IDLE_CONNS: 10
+      DB_CONN_MAX_LIFETIME: "30"
+      JWT_SECRET_KEY: "jwt-key"
+      JWT_TOKEN_DURATION: 24
+      SERVICE_SCHEDULE_HOST: http://teacher
+      SERVICE_SCHEDULE_PORT: "8082"
+      SERVICE_USER_HOST: http://user:8081
+      SERVICE_PAYMENT_HOST: http://payment:8084
+      # Object storage client configuration
+      CLIENT_ENDPOINT: "https://example.com"
+      CLIENT_ACCESS_KEY: "access-key"
+      CLIENT_SECRET_KEY: "secret-key"
+      CLIENT_REGION: "ap-southeast-1"
+      CLIENT_BUCKET_NAME: "images"
+      IS_NFT: "false"
+      ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:8080,http://localhost:3030"
+    ports:
+      - "8083:8083"
+    depends_on:
+      - mysql
+    networks:
+      - bookings-net
+
+  # Payment service. Handles payments and callbacks. Exposes its port for gateway callbacks.
+  payment:
+    build:
+      context: .
+      dockerfile: micro/payment/Dockerfile
+    container_name: payment-service
+    environment:
+      MYSQL_DSN: root:pass@tcp(mysql-project:3306)/japanlearn_payments?parseTime=true&loc=Asia%2FJakarta
+      APP_PORT: "8084"
+      GIN_MODE: "release"
+      DB_MAX_CONECTION: 50
+      DB_MAX_IDLE_CONNS: 10
+      DB_CONN_MAX_LIFETIME: "30"
+      JWT_SECRET_KEY: "jwt-key"
+      JWT_TOKEN_DURATION: 24
+      SERVICE_BOOKING_HOST: http://booking
+      SERVICE_BOOKING_PORT: "8083"
+      SERVICE_USER_HOST: http://user
+      SERVICE_USER_PORT: "8081"
+      # Midtrans credentials for payment gateway. Replace with real keys in production.
+      MIDTRANS_SERVER_KEY: "mid-key"
+      MIDTRANS_CLIENT_KEY: "Mid-client-key"
+      TYPE_SANBOX: "true"
+      IS_NFT: "false"
+      ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:8080,http://localhost:3030"
+    ports:
+      - "8084:8084"
+    depends_on:
+      - mysql
+      - booking
+    networks:
+      - bookings-net
+
+  # Frontend service. Builds the Vue.js app and serves it over Nginx on port 80.
+  frontend:
+    build:
+      context: micro/frontend-vue
+      dockerfile: Dockerfile
+    container_name: frontend-bookings
+    # Serve the app on host port 3000; container listens on port 80 via nginx
+    ports:
+      - "3030:80"
+    depends_on:
+      - user
+      - teacher
+      - booking
+      - payment
+    networks:
+      - bookings-net
+
+volumes:
+  db-data:
+
+networks:
+  bookings-net:
+    driver: bridge
+    name: bookings-net
