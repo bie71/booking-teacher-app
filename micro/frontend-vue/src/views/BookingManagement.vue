@@ -33,7 +33,7 @@
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            <tr v-for="b in bookings" :key="b.id">
+            <tr v-for="b in bookings" :key="b.id" class="hover:bg-gray-100 dark:hover:bg-gray-700">
               <td class="px-6 py-4 whitespace-nowrap text-sm">{{ b.id }}</td>
               <td class="px-6 py-4 text-sm">
                 <div class="font-medium">{{ b.user?.name || '-' }}</div>
