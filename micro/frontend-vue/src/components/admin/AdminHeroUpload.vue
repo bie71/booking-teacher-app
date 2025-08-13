@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 dark:bg-gray-900 dark:text-white dark:bg-opacity-0">
+  <div class="">
     <div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg relative max-h-[90vh] overflow-y-auto dark:bg-gray-800">
       <!-- Close Button -->
       <button
