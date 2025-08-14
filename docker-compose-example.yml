@@ -15,17 +15,14 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: japanlearn
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
       TZ: Asia/Jakarta
     ports:
       - "3306:3306"
     volumes:
       # Persist database data across restarts
       - db-data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
     command: >-
-      --default-authentication-plugin=mysql_native_password
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
     healthcheck:
@@ -34,7 +31,7 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - backend
+      - bookings-net
 
   # User service. Handles authentication, profiles, favourites and activity logs.
   user:
@@ -43,7 +40,7 @@ services:
       dockerfile: micro/user/Dockerfile
     container_name: user-service
     environment:
-      MYSQL_DSN: root:pass@tcp(mysql-project:3306)/japanlearn_users?parseTime=true&loc=Asia%2FJakarta
+      MYSQL_DSN: root:root@tcp(mysql:3306)/japanlearn_users?parseTime=true&loc=Asia%2FJakarta
       APP_PORT: "8081"
       GIN_MODE: "release"
       DB_MAX_CONECTION: 50
@@ -79,7 +76,8 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     networks:
       - bookings-net
 
@@ -90,7 +88,7 @@ services:
       dockerfile: micro/teacher/Dockerfile
     container_name: teacher-service
     environment:
-      MYSQL_DSN: root:pass@tcp(mysql-project:3306)/japanlearn_teachers?parseTime=true&loc=Asia%2FJakarta
+      MYSQL_DSN: root:root@tcp(mysql:3306)/japanlearn_teachers?parseTime=true&loc=Asia%2FJakarta
       APP_PORT: "8082"
       GIN_MODE: "release"
       DB_MAX_CONECTION: 50
@@ -110,7 +108,8 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     networks:
       - bookings-net
 
@@ -121,7 +120,7 @@ services:
       dockerfile: micro/booking/Dockerfile
     container_name: booking-service
     environment:
-      MYSQL_DSN: root:pass@tcp(mysql-project:3306)/japanlearn_bookings?parseTime=true&loc=Asia%2FJakarta
+      MYSQL_DSN: root:root@tcp(mysql:3306)/japanlearn_bookings?parseTime=true&loc=Asia%2FJakarta
       APP_PORT: "8083"
       GIN_MODE: "release"
       DB_MAX_CONECTION: 50
@@ -144,7 +143,8 @@ services:
     ports:
       - "8083:8083"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     networks:
       - bookings-net
 
@@ -155,7 +155,7 @@ services:
       dockerfile: micro/payment/Dockerfile
     container_name: payment-service
     environment:
-      MYSQL_DSN: root:pass@tcp(mysql-project:3306)/japanlearn_payments?parseTime=true&loc=Asia%2FJakarta
+      MYSQL_DSN: root:root@tcp(mysql:3306)/japanlearn_payments?parseTime=true&loc=Asia%2FJakarta
       APP_PORT: "8084"
       GIN_MODE: "release"
       DB_MAX_CONECTION: 50
@@ -176,8 +176,10 @@ services:
     ports:
       - "8084:8084"
     depends_on:
-      - mysql
-      - booking
+      mysql:
+        condition: service_healthy
+      booking:
+        condition: service_started
     networks:
       - bookings-net
 
@@ -204,4 +206,4 @@ volumes:
 networks:
   bookings-net:
     driver: bridge
-    name: bookings-net
+    # name: bookings-net

@@ -6,7 +6,7 @@ echo "===================================="
 
 # Default MySQL credentials (change these as needed)
 MYSQL_HOST="127.0.0.1"
-MYSQL_PORT="9080"
+MYSQL_PORT="3306"
 MYSQL_USER="root"
 MYSQL_PASSWORD=""
 
@@ -70,11 +70,9 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-    # activity_logs table
 
-    echo "Creating activity_logs table..."
 CREATE TABLE IF NOT EXISTS activity_logs (
-    id SERIAL PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     action VARCHAR(255) NOT NULL,
     description TEXT,
@@ -82,17 +80,13 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 );
 
 
-    # favorite_teachers table
-    echo "Creating favorite_teachers table..."
-
 CREATE TABLE IF NOT EXISTS favorite_teachers (
-    id SERIAL PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     teacher_id INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     UNIQUE (user_id, teacher_id)
 );
-
 EOF
 
     # Teachers table
@@ -213,7 +207,7 @@ show_info() {
     echo "🔧 Next steps:"
     echo "1. Update .env files in each service with your database credentials"
     echo "2. Run ./start-services.sh to start the application"
-    echo "3. Visit http://localhost:8080 to access the frontend"
+    echo "3. Visit http://localhost:PORT to access the frontend"
     echo ""
     echo "📝 Demo accounts (password: password123):"
     echo "- john.smith@example.com"
