@@ -146,11 +146,7 @@ INSERT INTO payments (midtrans_transaction_id, amount, status, payment_method, b
 ('TXN004', 20.00, 'settlement', 'credit_card', 4, DATE_SUB(NOW(), INTERVAL 7 DAY), DATE_SUB(NOW(), INTERVAL 7 DAY), DATE_SUB(NOW(), INTERVAL 7 DAY));
 
 -- Insert sample payment methods
-INSERT INTO payment_methods (code,name, is_active, created_at, updated_at) VALUES
-('credit_card','Credit Card', 1, NOW(), NOW()),
-('bank_transfer','Bank Transfer', 1, NOW(), NOW()),
-('e_wallet','E-Wallet', 1, NOW(), NOW()),
-('paypal','PayPal', 0, NOW(), NOW());
+INSERT INTO `payment_methods` VALUES (1,'credit_card','Credit Card',0,'2025-08-04 16:55:36.000','2025-08-09 00:42:10.000'),(2,'bank_transfer','Bank Transfer',1,'2025-08-04 16:55:36.000','2025-08-05 13:17:35.000'),(3,'e_wallet','E-Wallet',1,'2025-08-04 16:55:36.000','2025-08-04 16:55:36.000'),(4,'paypal','PayPal',0,'2025-08-04 16:55:36.000','2025-08-09 00:40:52.000'),(5,'gopay','GoPay',1,'2025-08-05 13:12:59.000','2025-08-05 13:17:35.000'),(6,'ovo','OVO',1,'2025-08-05 13:12:59.000','2025-08-05 13:17:35.000'),(7,'dana','DANA',1,'2025-08-05 13:12:59.000','2025-08-05 13:17:35.000'),(8,'shopeepay','ShopeePay',1,'2025-08-05 13:12:59.000','2025-08-05 13:17:35.000'),(9,'linkaja','LinkAja',1,'2025-08-05 13:12:59.000','2025-08-10 19:29:38.927'),(10,'bca_va','BCA Virtual Account',1,'2025-08-05 13:12:59.000','2025-08-05 13:17:35.000'),(11,'bni_va','BNI Virtual Account',1,'2025-08-05 13:12:59.000','2025-08-05 13:17:35.000'),(12,'bri_va','BRI Virtual Account',1,'2025-08-05 13:12:59.000','2025-08-05 13:17:35.000'),(13,'mandiri_va','Mandiri Virtual Account',1,'2025-08-05 13:12:59.000','2025-08-05 13:17:35.000'),(14,'permata_va','Permata Virtual Account',1,'2025-08-05 13:12:59.000','2025-08-05 13:17:35.000'),(15,'indomaret','Indomaret',0,'2025-08-05 13:12:59.000','2025-08-10 00:32:23.000'),(16,'alfamart','Alfamart',0,'2025-08-05 13:12:59.000','2025-08-09 00:40:59.000');
 
 COMMIT;
 
