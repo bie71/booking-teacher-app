@@ -20,7 +20,7 @@ type Teacher struct {
 
 type Schedule struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
-	TeacherID uint      `gorm:"index;type:int;not null" json:"teacher_id"`
+	TeacherID uint      `gorm:"index;type:int unsigned;not null" json:"teacher_id"`
 	Teacher   *Teacher  `gorm:"foreignKey:TeacherID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"teacher"`
 	Date      time.Time `gorm:"type:date" json:"date"`
 	StartTime string    `gorm:"type:VARCHAR(8)" json:"start_time"`

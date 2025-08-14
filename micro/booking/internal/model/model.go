@@ -6,7 +6,7 @@ type Booking struct {
 	ID             uint      `gorm:"primaryKey" json:"id"`
 	UserID         uint      `gorm:"index" json:"user_id"`
 	ScheduleID     uint      `gorm:"index" json:"schedule_id"`
-	Status         string    `gorm:"type:enum('pending','paid','cancelled','rescheduled');default:'pending'" json:"status"`
+	Status         string    `gorm:"type:enum('pending','paid','cancelled','rescheduled','completed');default:'pending'" json:"status"`
 	PaymentID      *uint     `json:"payment_id"`
 	RescheduleFrom *uint     `json:"reschedule_from"`
 	Note           string    `json:"note"`

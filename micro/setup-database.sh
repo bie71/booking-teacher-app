@@ -58,7 +58,7 @@ create_tables() {
     echo "Creating users table..."
     mysql -h"$MYSQL_HOST" -P"$MYSQL_PORT" -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" --protocol=TCP japanlearn_users << 'EOF'
 CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
@@ -72,28 +72,39 @@ CREATE TABLE IF NOT EXISTS users (
 
 
 CREATE TABLE IF NOT EXISTS activity_logs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     action VARCHAR(255) NOT NULL,
     description TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 
 CREATE TABLE IF NOT EXISTS favorite_teachers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    teacher_id INTEGER NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    teacher_id INT UNSIGNED NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     UNIQUE (user_id, teacher_id)
 );
+
+CREATE TABLE `hero_images` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `key_image` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `image_url` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_key_image` (`key_image`)
+);
+
 EOF
 
     # Teachers table
     echo "Creating teachers table..."
     mysql -h"$MYSQL_HOST" -P"$MYSQL_PORT" -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" --protocol=TCP japanlearn_teachers << 'EOF'
 CREATE TABLE IF NOT EXISTS teachers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED,
     name VARCHAR(100) NOT NULL,
     bio TEXT,
     language_level VARCHAR(20) DEFAULT 'beginner',
@@ -107,8 +118,8 @@ CREATE TABLE IF NOT EXISTS teachers (
 );
 
 CREATE TABLE IF NOT EXISTS schedules (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    teacher_id INT NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    teacher_id INT UNSIGNED NOT NULL,
     date DATE NOT NULL,
     start_time VARCHAR(8) NOT NULL,
     end_time VARCHAR(8) NOT NULL,
@@ -124,20 +135,23 @@ EOF
     # Bookings table
     echo "Creating bookings table..."
     mysql -h"$MYSQL_HOST" -P"$MYSQL_PORT" -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" --protocol=TCP japanlearn_bookings << 'EOF'
-CREATE TABLE IF NOT EXISTS bookings (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    schedule_id INT NOT NULL,
-    status ENUM('pending', 'paid', 'cancelled', 'rescheduled', 'completed') DEFAULT 'pending',
-    payment_id INT NULL,
-    reschedule_from INT NULL,
-    note TEXT,
-    total_price DECIMAL(10,2) DEFAULT 0.0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_user_id (user_id),
-    INDEX idx_schedule_id (schedule_id),
-    INDEX idx_status (status)
+CREATE TABLE `bookings` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned DEFAULT NULL,
+  `schedule_id` bigint unsigned DEFAULT NULL,
+  `status` enum('pending','paid','cancelled','rescheduled','completed') COLLATE utf8mb4_unicode_ci DEFAULT 'pending',
+  `payment_id` bigint unsigned DEFAULT NULL,
+  `reschedule_from` bigint unsigned DEFAULT NULL,
+  `note` longtext COLLATE utf8mb4_unicode_ci,
+  `created_at` datetime(3) DEFAULT NULL,
+  `updated_at` datetime(3) DEFAULT NULL,
+  `total_price` double DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_schedule_id` (`schedule_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_bookings_user_id` (`user_id`),
+  KEY `idx_bookings_schedule_id` (`schedule_id`)
 );
 EOF
 
@@ -145,12 +159,12 @@ EOF
     echo "Creating payments table..."
     mysql -h"$MYSQL_HOST" -P"$MYSQL_PORT" -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" --protocol=TCP japanlearn_payments << 'EOF'
 CREATE TABLE IF NOT EXISTS payments (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     midtrans_transaction_id VARCHAR(100),
     amount DECIMAL(10,2) NOT NULL,
     status ENUM('pending', 'settlement', 'failed', 'cancel') DEFAULT 'pending',
     payment_method VARCHAR(50),
-    booking_id INT NOT NULL,
+    booking_id INT UNSIGNED NOT NULL,
     paid_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -159,7 +173,7 @@ CREATE TABLE IF NOT EXISTS payments (
 );
 
 CREATE TABLE IF NOT EXISTS payment_methods (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     code VARCHAR(50) NOT NULL,
     name VARCHAR(50) NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,

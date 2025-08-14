@@ -7,7 +7,7 @@ type User struct {
 	Name            string `gorm:"size:100;not null"`
 	Email           string `gorm:"size:100;unique;not null"`
 	PasswordHash    string `gorm:"type:text;not null"`
-	Role            string `gorm:"type:enum('user','admin','teacher');not null"`
+	Role            string `gorm:"type:enum('user','admin','teacher');not null;default:'user'"`
 	ProfileImage    string
 	ResetToken      string
 	ResetExpiration *time.Time

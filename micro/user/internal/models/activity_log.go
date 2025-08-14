@@ -14,7 +14,7 @@ import "time"
 // database column types and constraints.
 type ActivityLog struct {
 	ID          uint      `gorm:"primaryKey" json:"id"`
-	UserID      uint      `gorm:"index;type:int;not null" json:"user_id"`
+	UserID      uint      `gorm:"index;type:int unsigned;not null" json:"user_id"`
 	User        User      `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Action      string    `gorm:"size:255;not null" json:"action"`
 	Description string    `gorm:"type:text" json:"description"`
